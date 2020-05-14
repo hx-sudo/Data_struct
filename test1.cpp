@@ -2,7 +2,7 @@
 //
 
 #include <iostream>
-#include"Compress.h"
+#include"Compress.h"  
 using namespace std;
 
 int main()//程序入口
