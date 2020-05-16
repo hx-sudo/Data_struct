@@ -2,6 +2,7 @@
 #include<iostream>
 #include<Stdlib.h>
 #include"Huffman.h"
+#pragma warning(disable : 4996)
 using namespace std;
 
 
@@ -30,10 +31,10 @@ int creattree(Huffmantree pHT, int weight[], int n)//Éú³É¹ş·òÂüÊ÷£¬½Úµã£¬È¨Öµ£¬Ò
 	int a1, a2;//Á½½ÚµãĞòºÅ
 	for (int i = 0; i < n; i++)//½«ÎÄ¼şĞÅÏ¢ËÍÈëÒ¶×Ó½ÚµãÖĞ
 	{
-		pHT[i+1].weight = weight[i];
-		pHT[i + 1].lchild = 0;
-		pHT[i + 1].rchild = 0;
-		pHT[i + 1].parent = 0;
+		pHT[i].weight = weight[i];
+		pHT[i].lchild = 0;
+		pHT[i].rchild = 0;
+		pHT[i].parent = 0;
 	}
 					
 	int m = 2 * n - 1;	//HuffmanÊ÷¹²ÓĞn¸öÒ¶×Ó½Úµã,ÓĞ2n-1¸ö½Úµã  
@@ -47,30 +48,29 @@ int creattree(Huffmantree pHT, int weight[], int n)//Éú³É¹ş·òÂüÊ÷£¬½Úµã£¬È¨Öµ£¬Ò
 		pHT[i].rchild = a2;
 
 		pHT[i].weight = pHT[a1].weight + pHT[a2].weight;
-
+		pHT[i].parent = 0;
 	}
-	pHT[m - 1].parent = 0;
 
 	return 0;
 }
 
 
 
-
 int  creatcoding(Huffmantree pHT, Huffmancode pHC)//Éú³É¹ş·òÂü±àÂë,×óÁãÓÒÒ»
 {
-	int n = 256;
-	pHC = new HCNode[n ];//¹ş·òÂü±àÂë£¬
-	char cd[256]={'\0'};//±àÂë
+//	pHC = new HCNode[n ];//¹ş·òÂü±àÂë£¬
+	char *cd=new char[256];//±àÂë
+	cd[255] = '\0';
 
     //´ÓÒ¶×Óµ½¸ùÄæÏòÇó±àÂë
-	for (int i = 0; i < n; i++)
+	for (int i = 0; i < 256; i++)
 	{
 		int f = pHT[i].parent;
+		int n = 255;
 		int k = 0;//¼ÆÊı
 		for (int j = i; f != 0;f=pHT[f].parent)
 		{
-			if ((int)pHT[f].lchild == j)
+			if (pHT[f].lchild == j)
 			{
 				cd[--n] = '0';
 				k++;
@@ -83,13 +83,25 @@ int  creatcoding(Huffmantree pHT, Huffmancode pHC)//Éú³É¹ş·òÂü±àÂë,×óÁãÓÒÒ»
 			j = f;
 		}
 		pHC[i].code = new char[k];
-		strcpy(pHC[i].code, cd);
+		strcpy(pHC[i].code, &cd[n]);
+	
 
 	}
 	delete cd;
 	return 0;
 }
 
+
+int Showcode(Huffmancode pHC)//Õ¹Ê¾Huffman±àÂë
+{
+	cout << "256ÖĞ×Ö·û¶ÔÓ¦µÄHuffman±àÂë£º" << endl;
+	cout << "×Ö½ÚAsciiÂë\t\t" << "±àÂë\t\t" << endl;
+	for (int i = 0; i < 256; i++)
+	{
+		cout << i << "\t\t" << pHC[i].code<<endl;
+	}
+	return 0;
+}
 
 
 
