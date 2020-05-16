@@ -36,7 +36,7 @@ int Compress(char* filename)//实现压缩文件
 	InitHead(filename, head);//初始化
 	Showweight_(head.weight);//显示权值
 
-	Huffmantree pHT = new HTNode[256];//Fuffman树
+	Huffmantree pHT = new HTNode[511];//Fuffman树
 
 
 
