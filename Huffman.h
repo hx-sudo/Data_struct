@@ -32,5 +32,6 @@ int creatcoding(Huffmantree pHT,Huffmancode pHC);//生成哈夫曼编码
 
 int Showcode(Huffmancode pHC);//展示Huffman编码
 
+int Encode(const char* pFilename, const Huffmancode pHC, char* pBuffer, const int nSize);//利用哈夫曼编码实现文件压缩
 
 #endif // !HUFFMAN_H

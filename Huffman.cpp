@@ -58,7 +58,6 @@ int creattree(Huffmantree pHT, int weight[], int n)//Éú³É¹ş·òÂüÊ÷£¬½Úµã£¬È¨Öµ£¬Ò
 
 int  creatcoding(Huffmantree pHT, Huffmancode pHC)//Éú³É¹ş·òÂü±àÂë,×óÁãÓÒÒ»
 {
-//	pHC = new HCNode[n ];//¹ş·òÂü±àÂë£¬
 	char *cd=new char[256];//±àÂë
 	cd[255] = '\0';
 
@@ -87,7 +86,7 @@ int  creatcoding(Huffmantree pHT, Huffmancode pHC)//Éú³É¹ş·òÂü±àÂë,×óÁãÓÒÒ»
 	
 
 	}
-	delete cd;
+	delete[] cd;
 	return 0;
 }
 

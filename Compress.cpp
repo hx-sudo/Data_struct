@@ -4,7 +4,12 @@
 #include<stdlib.h>
 #include"Compress.h"
 #include"Huffman.h"
+
+
 using namespace std;
+
+HEAD head;//头文件，保存原文件基本信息
+
 
 #pragma warning(disable : 4996)
 int InitHead(const char* filename, HEAD& head)//初始化文件头数据信息，读取原文件，
@@ -38,13 +43,12 @@ int InitHead(const char* filename, HEAD& head)//初始化文件头数据信息，读取原文件
 
 int Compress(char* filename)//实现压缩文件
 {
-	HEAD head;//头文件，保存原文件基本信息
 	if (InitHead(filename, head) == 1)//初始化原文件
 	{
 		return 1;//文件打开失败
 	}
 	//显示权值
-	//Showweight_(head.weight);
+	Showweight_(head.weight);
 
 	Huffmantree pHT = new HTNode[511];//Fuffman树
 	Huffmancode pHC = new HCNode[256];//Fuffman编码
@@ -57,28 +61,80 @@ int Compress(char* filename)//实现压缩文件
 	int nSize = 0;
 	for (int i = 0; i < 256; i++)
 	{
-		nSize += head.weight[i] * strlen(pHC[i].code);
+		nSize += head.weight[i] * (int)strlen(pHC[i].code);
+	}
+	nSize = (nSize % 8) ? nSize / 8 + 1 : nSize / 8;//总字节数
+
+	//对原文件压缩编码
+	char* pBuffer = NULL;
+	//开辟缓冲区
+	pBuffer = (char*)malloc(nSize * sizeof(char));
+	if (!pBuffer)
+	{
+		cerr << "开辟缓冲区失败" << endl;
+		return 1;
 	}
 
-
-
-
-
-	Encode();
+	Encode(filename, pHC, pBuffer, nSize);
+//	if (!pBuffer)
+//	{
+//		cout << "压缩错误一！" << endl;
+//		return 1;
+//	}
+	
+	int len=WriteFile(filename, head, pBuffer, nSize);//存入新压缩文件
+	cout << head.length << "字节（原）" << endl;
+	cout << len <<"字节（新）" << endl;
+	cout << "压缩比率：" << (float)(len *100)/ head.length <<"%"<< endl;
 
 	return 0;
 }
 
-int Encode(const char* pFilename, const Huffmancode pHC, char* pBuffer, const int nSize)//利用哈夫曼编码原文件重新编码，保存到数组char
+
+
+//利用哈夫曼编码原文件重新编码，保存到数组char
+int Encode(const char* pFilename, const Huffmancode pHC, char* pBuffer, const int nSize)
 {
 	FILE* in = fopen(pFilename, "rb");
-	char ch;//逐字节读取
+	char cd[SIZE] = { 0 };//保存编码字符串,工作区
+	int pos = 0;//缓冲区指针
+	unsigned char ch;
+	//扫描文件，根据哈夫曼编码表压缩，暂存到缓冲区
+	while ((ch = fgetc(in)) != EOF)
+	{
+		strcat(cd, pHC[ch].code);
+		//压缩编码
+		while (strlen(cd) >= 8)
+		{
+			
+			//截取左边8个字符编码成字节
+			if ( pos >nSize * sizeof(char))
+			{
+				cout << "压缩错误二！" << endl;
+				return 1;
 
+			}
+			else
+				pBuffer[pos++] = Str2byte(cd);
+
+			//字符串整体左移8
+			for (int i = 0; i < SIZE - 8; i++)
+			{
+				cd[i] = cd[i + 8];
+			}
+		}
+	}
+	if (strlen(cd) > 0)//剩余
+	{
+		pBuffer[pos++] = Str2byte(cd);
+	}
+
+	fclose(in);
 	return 0;
 
 }
 
-int Str2byte(const char* pBinStr)//将字符串转化为字节，得到最终编码，保存到*.buf文件中
+char Str2byte(const char* pBinStr)//将字符串转化为字节，得到最终编码，保存到*.buf文件中
 {
 	char b = 0x00;
 	for (int i = 0; i < 8; i++)
@@ -93,10 +149,24 @@ int Str2byte(const char* pBinStr)//将字符串转化为字节，得到最终编码，保存到*.buf
 }
 
 
-int WriteFile()//将压缩后的数据写入新文件
+int WriteFile(const char* Filename, const HEAD shead, const char* pBuffer, const int nSize)//将压缩后的数据写入新文件
 {
+	//生成文件名
+	char filename[256] = { 0 };
+	strcpy(filename, Filename);
+	strcat(filename, ".buf");
+	//以二进制流打开文件
+	FILE* out = fopen(filename, "wb");
+	//写文件头
+	fwrite(&shead, sizeof(HEAD), 1, out);
+	//写压缩后的编码
+	fwrite(pBuffer, sizeof(char), nSize, out);
+	fclose(out);
+	out = NULL;
 
-	return 0;
+	cout << "生成压缩文件：" << filename << endl;
+	int len = sizeof(HEAD) + (int)strlen(Filename) + 1 + nSize;//压缩后文件长度
+	return len;
 
 
 }

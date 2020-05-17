@@ -42,7 +42,6 @@ int main()//程序入口
 			break;
 		}
 		}
-		getchar();
 	}
 	
 
