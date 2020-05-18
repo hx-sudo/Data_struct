@@ -18,5 +18,27 @@
     <ClCompile Include="test2.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="Graph.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Tourism.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="Vex.txt">
+      <Filter>资源文件</Filter>
+    </Text>
+    <Text Include="Edge.txt">
+      <Filter>资源文件</Filter>
+    </Text>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Graph.h">
+      <Filter>源文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Tourism.h">
+      <Filter>源文件</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
