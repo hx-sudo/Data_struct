@@ -161,25 +161,28 @@ void TravelPath()
 	}
 	
 	//遍历景区景点图
-	PathList pList= new Path;
-	m_Graph.DFSTraverse(choice, pList);
-
+	PathList List= new Path;
+	PathList head = List;//保存头节点
+	m_Graph.DFSTraverse(choice, List);
+	
 	
 	//输出遍历结果
-	int i = 1,j=0;//路线条数,序号
+	int i = 1;//路线条数,序号
 	cout << "导航路线：" << endl;
-	while (pList->next != NULL)
+	while (head != NULL)//此处head和head->next结果差一会有一个错误结果
 	{
 		cout << "路线" << i << ":  ";
 		for (int j = 0; j < m_Graph.m_nVexNum;j++)
 		{
-			cout << m_Graph.m_aVexs[pList->vexs[j]].name;
+			cout << m_Graph.m_aVexs[head->vexs[j]].name;
+
 			if (j + 1 == m_Graph.m_nVexNum)
 				cout << endl;
 			else
 				cout << " -> ";
 		}
-		pList->next = pList->next->next;
+		head = head->next;
+		i++;
 		
 	}
 }

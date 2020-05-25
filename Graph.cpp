@@ -64,29 +64,40 @@ int CGraph::FindEdge(int v, Edge aEdge[])
 //深度优先搜索（查询此点，寻找相邻是否有点是否被访问）
 void CGraph::DSF(int nVex, bool bVisited[], int& nIndex, PathList& pList)
 {
-	PathList n = pList;
+	
 	bVisited[nVex] = true;//此点已经访问了
-	n->vexs[nIndex++] = nVex;//将这个点存入，深度加1
+	pList->vexs[nIndex++] = nVex;//将这个点存入，深度加1
+	int n = 0;
+	for (int i = 0; i < m_nVexNum; i++)
+		if (bVisited[i] == true)
+			n++;
 
-	if (nIndex == m_nVexNum)//所有顶点已被访问，访一条保一条
+	if (n == m_nVexNum)//所有顶点已被访问，访一条保一条
 	{
-		n->next =  (PathList)malloc(sizeof(Path));
+		pList->next =  (PathList)malloc(sizeof(Path));
+		if (!(pList->next))
+		{
+			cout << "异常错误" << endl;
+			exit(0);
+		}
 		for (int i = 0; i < m_nVexNum; i++)
 		{
-			n->next->vexs[i] = n->vexs[i];
+			pList->next->vexs[i] = pList->vexs[i];
 		}
-		n = n->next;
-		n->next = NULL;
+		pList = pList->next;
+		pList->next = NULL;
 		
 	}
 	else
-	for (int i = 0; i < m_nVexNum;i++)//搜索V的所有邻接点
 	{
-		if (m_aAdjMatrix[ nVex][i]!=0 && !bVisited[i])//寻找相邻是否有点是否被访问
+		for (int i = 0; i < m_nVexNum; i++)//搜索V的所有邻接点
 		{
-			DSF(i, bVisited, nIndex, n);//递归调用DFS
-			bVisited[i] = false;
-			nIndex--;//深度减,返回到路口
+			if (m_aAdjMatrix[i][nVex] != 0 && !bVisited[i])//寻找相邻是否有点是否被访问
+			{
+				DSF(i, bVisited, nIndex, pList);//递归调用DFS
+  				bVisited[i] = false;
+				nIndex--;//深度减,返回到路口
+			}
 		}
 	}
 }
