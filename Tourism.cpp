@@ -14,8 +14,10 @@ const string VFILE = "D:\\桌面\\codes\\test2\\Vex.txt";
 
 CGraph m_Graph;
 
-int CreatGraph()//读文件，保存信息。获取景点信息和道路信息
+//功能一。读文件，保存信息。获取景点信息和道路信息
+int CreatGraph()
 {
+	cout << "****创建景区景点图" << endl;
 	if (m_Graph.m_nVexNum != 0)
 	{
 		cout << "图已存在" << endl;
@@ -81,7 +83,8 @@ int CreatGraph()//读文件，保存信息。获取景点信息和道路信息
 	return 0;
 }
 
-int GetSpotInfo()//输出所有信息
+//功能二，查询景点输出所有信息
+int GetSpotInfo()
 {
 	Edge aEdge[20];//响铃边
 	if (m_Graph.m_nVexNum == 0)
@@ -129,4 +132,59 @@ int GetSpotInfo()//输出所有信息
 	return 0;
 
 }
+
+//功能三，调用dfstraverse(),实现景点导航
+void TravelPath()
+{
+	
+	if (m_Graph.m_nVexNum == 0)
+	{
+		cout << "没有构造图！" << endl;
+		return;
+	}
+	else
+	{
+		cout << "****旅游景点导航*****" << endl;
+
+	}
+	for (int i = 0; i < m_Graph.m_nVexNum; i++)
+	{
+		cout << m_Graph.m_aVexs[i].num << "-" << m_Graph.m_aVexs[i].name << endl;
+	}
+
+	int choice;////输入景点编号
+	cout << "输入起始点编号:"; cin >> choice;
+	if (choice >= m_Graph.m_nVexNum)
+	{
+		cout << "输入错误" << endl;
+		return;
+	}
+	
+	//遍历景区景点图
+	PathList pList= new Path;
+	m_Graph.DFSTraverse(choice, pList);
+
+	
+	//输出遍历结果
+	int i = 1,j=0;//路线条数,序号
+	cout << "导航路线：" << endl;
+	while (pList->next != NULL)
+	{
+		cout << "路线" << i << ":  ";
+		for (int j = 0; j < m_Graph.m_nVexNum;j++)
+		{
+			cout << m_Graph.m_aVexs[pList->vexs[j]].name;
+			if (j + 1 == m_Graph.m_nVexNum)
+				cout << endl;
+			else
+				cout << " -> ";
+		}
+		pList->next = pList->next->next;
+		
+	}
+}
+	
+
+
+
 

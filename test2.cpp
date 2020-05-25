@@ -16,37 +16,40 @@ int main()
 		cout <<endl<< "######景区信息管理系统######" << endl
 			<< "1.创建景区景点图" << endl
 			<< "2.查询景点编号" << endl
-			<< "3." << endl
-			<< "4." << endl
-			<< "5.退出" << endl
-			<< "请输入操作编号（1-5）:" ;
+			<< "3.旅游景点导航" << endl
+			//<< "4.搜索最短路径" << endl
+			//<<"5.铺设电路规划"<<endl
+			<< "6.退出" << endl
+			<< "请输入操作编号（1-6）:" ;
 		cin >> choice;
-		if(53<choice||choice<49)
+		if(54<choice||choice<49)
 			cout << "输入错误，重新输入" << endl;
 		else
 		switch (choice)
 		{
 		case '1':
-			cout << "****创建景区景点图" << endl;
-			CreatGraph();
+			
+			CreatGraph();//创建图
 			break;
 		case '2':
-			GetSpotInfo();//输出所有信息
+			GetSpotInfo();//查询，输出景点所有信息
 			break;
 
 
 		case '3':
-			cout << "****" << endl;
+			TravelPath();//景点导航
 			break;
 
 
 		case '4':
-			cout << "****" << endl;
+			//cout << "****搜索最短路径****" << endl;
+			break;
+		case '5':
+			//cout << "****铺设电路规划****" << endl;
 			break;
 
-
-		case '5':
-			cout << "****退出" << endl;
+		case '6':
+			cout << "****退出****" << endl;
 			exit(0);
 			break;
 

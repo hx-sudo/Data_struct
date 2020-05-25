@@ -14,8 +14,8 @@ using namespace std;
 
 
 
-
-bool CGraph::InsertVex(Vex sVex)//插入点
+//插入点
+bool CGraph::InsertVex(Vex sVex)
 {
 	if (m_nVexNum == 20)
 		return false;//顶点已满
@@ -23,8 +23,8 @@ bool CGraph::InsertVex(Vex sVex)//插入点
 	return true;
 }
 
-
-bool CGraph::InsertEdge(Edge sEdge)//插入边
+//插入边
+bool CGraph::InsertEdge(Edge sEdge)
 {
 	if (sEdge.vex1 < 0 || sEdge.vex1 >= m_nVexNum || sEdge.vex2 < 0 || sEdge.vex2 >= m_nVexNum)
 	{
@@ -36,19 +36,20 @@ bool CGraph::InsertEdge(Edge sEdge)//插入边
 	return true;
 }
 
-Vex CGraph::GetVex(int v)//顶点编号查找顶点
+//顶点编号查找顶点
+Vex CGraph::GetVex(int v)
 {
 	return m_aVexs[v];
 }
 
 
-
-int CGraph::FindEdge(int v, Edge aEdge[])//查找顶点相连边,数组返回边
+//查找顶点相连边,数组返回边
+int CGraph::FindEdge(int v, Edge aEdge[])
 {
 	int k = 0;//返回邻接点数
 	for (int i = 0; i < m_nVexNum; i++)
 	{
-		if (m_aAdjMatrix[i][v] !=0 )
+		if (m_aAdjMatrix[i][v] !=0 )//判断收否为相邻点
 		{
 			aEdge[k].vex1 = i;
 			aEdge[k].vex2 = v;
@@ -59,3 +60,44 @@ int CGraph::FindEdge(int v, Edge aEdge[])//查找顶点相连边,数组返回边
 	}
 	return k;
 }
+
+//深度优先搜索（查询此点，寻找相邻是否有点是否被访问）
+void CGraph::DSF(int nVex, bool bVisited[], int& nIndex, PathList& pList)
+{
+	PathList n = pList;
+	bVisited[nVex] = true;//此点已经访问了
+	n->vexs[nIndex++] = nVex;//将这个点存入，深度加1
+
+	if (nIndex == m_nVexNum)//所有顶点已被访问，访一条保一条
+	{
+		n->next =  (PathList)malloc(sizeof(Path));
+		for (int i = 0; i < m_nVexNum; i++)
+		{
+			n->next->vexs[i] = n->vexs[i];
+		}
+		n = n->next;
+		n->next = NULL;
+		
+	}
+	else
+	for (int i = 0; i < m_nVexNum;i++)//搜索V的所有邻接点
+	{
+		if (m_aAdjMatrix[ nVex][i]!=0 && !bVisited[i])//寻找相邻是否有点是否被访问
+		{
+			DSF(i, bVisited, nIndex, n);//递归调用DFS
+			bVisited[i] = false;
+			nIndex--;//深度减,返回到路口
+		}
+	}
+}
+
+//调用dsf()得到结果
+void CGraph::DFSTraverse(int nVex, PathList& pList)
+{
+	//初始化变量
+	int nIndex = 0;//深度
+	bool aVisited[MVN] = { false };//访问状态
+	DSF(nVex,aVisited,nIndex,pList);//通过传入的参数点，和链表
+}
+
+
