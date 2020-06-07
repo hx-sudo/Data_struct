@@ -9,8 +9,8 @@
 
 using namespace std;
 
-const string EFILE = "D:\\桌面\\codes\\test2\\Edge.txt";
-const string VFILE = "D:\\桌面\\codes\\test2\\Vex.txt";
+const string EFILE = "D:\\Desktop\\codes\\test2\\Edge.txt";
+const string VFILE = "D:\\Desktop\\codes\\test2\\Vex.txt";
 
 CGraph m_Graph;
 
@@ -23,7 +23,7 @@ int CreatGraph()
 		cout << "图已存在" << endl;
 		return 0;
 	}
-
+	m_Graph.Init();//初始化图矩阵
 
 	//顶点
 	ifstream vin(VFILE);
@@ -162,25 +162,26 @@ void TravelPath()
 	
 	//遍历景区景点图
 	PathList List= new Path;
-	PathList head = List;//保存头节点
+	PathList head =List;//保存头节点
 	m_Graph.DFSTraverse(choice, List);
 	
 	
 	//输出遍历结果
 	int i = 1;//路线条数,序号
 	cout << "导航路线：" << endl;
-	while (head != NULL)//此处head和head->next结果差一会有一个错误结果
+	while (head->next != NULL)//此处head和head->next结果差一会有一个错误结果
 	{
 		cout << "路线" << i << ":  ";
 		for (int j = 0; j < m_Graph.m_nVexNum;j++)
 		{
 			cout << m_Graph.m_aVexs[head->vexs[j]].name;
 
-			if (j + 1 == m_Graph.m_nVexNum)
+			if ((j + 1 )== m_Graph.m_nVexNum)
 				cout << endl;
 			else
 				cout << " -> ";
 		}
+		
 		head = head->next;
 		i++;
 		
@@ -188,6 +189,84 @@ void TravelPath()
 }
 	
 
+//功能四，最短路径及距离
+void FindShotPath()
+{
+	if (m_Graph.m_nVexNum == 0)
+	{
+		cout << "没有构造图！" << endl;
+		return;
+	}
+	else
+	{
+		cout << "****搜索最短路径****" << endl;
+	}
+	for (int i = 0; i < m_Graph.m_nVexNum; i++)
+	{
+		cout << m_Graph.m_aVexs[i].num << "-" << m_Graph.m_aVexs[i].name << endl;
+	}
+
+	int start,end;//起始点
+	cout << "请输入起点的编号："; cin >> start;
+	cout << "请输入终点的编号："; cin >> end;
+	if (start >= m_Graph.m_nVexNum||end >= m_Graph.m_nVexNum||start==end)
+	{
+		cout << "输入错误" << endl;
+		return;
+	}
+
+	Edge aPath[20];//保存最短路径边信息
+	int vexs=m_Graph.FindShortPath(start,end,aPath);//返回边个数
+
+
+	int length=0;//最短距离
+	cout << "最短路径为：";
+	for (int i = vexs-1; i >= 0; i--)
+	{
+		if(i== (vexs - 1))
+			cout << m_Graph.m_aVexs[aPath[i].vex1].name<<" -> ";
+		length += aPath[i].weight;
+		cout << m_Graph.m_aVexs[aPath[i].vex2].name;
+
+		if (i - 1 < 0)
+			cout << endl;
+		else
+			cout << " -> ";
+	}
+
+	cout << "最短距离为："<<length<<endl;
+
+
+}
+
+//功能五，铺设电路规划图
+void DesignPath()
+{
+	if (m_Graph.m_nVexNum == 0)
+	{
+		cout << "没有构造图！" << endl;
+		return;
+	}
+	else
+	{
+		cout << "****铺设电路规划****" << endl;
+	}
+
+	Edge aPath[20];
+	int length=m_Graph.FindMinTree(aPath);//将变量带入，返回总长度
+
+
+	cout << "在以下两个点之间铺设电路：" << endl;
+	for (int i = 0; i < m_Graph.m_nVexNum-1; i++)
+	{
+		cout << m_Graph.m_aVexs[aPath[i].vex1].name<< " -> " << m_Graph.m_aVexs[aPath[i].vex2].name <<"  "<< aPath[i].weight<<endl;
+
+	}
+	cout << "铺设电路总长度：" << length << endl;
+	
+
+
+}
 
 
 

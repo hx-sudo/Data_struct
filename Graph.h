@@ -3,7 +3,7 @@
 #define GRAPG_H
 
 
-#define MVN 20
+#define MAX 20
 
 typedef struct {//顶点
 	int num;//景点编号
@@ -25,12 +25,16 @@ typedef struct Path {
 class CGraph
 {
 public:
+	
+	void Init();//对图进行初始化
 	bool InsertVex(Vex sVex);//插入点
 	bool InsertEdge(Edge sEdge);//插入边
 	Vex GetVex(int v);//查找顶点
 	int FindEdge(int v, Edge aEdge[]);//查找顶点相连边
 	void DSF(int nVex, bool bVisited[], int& nIndex, PathList& pList);//深度优先搜索(始点，is遍历，深度)
 	void DFSTraverse(int nVex, PathList& pList);//调用dsf()得到结果
+	int FindShortPath(int nVexStart,int nVexEnd,Edge aPath[]);//输入起始，获得最短路径
+	int FindMinTree(Edge aPath[]);//最小生成树
 public:
 	int m_aAdjMatrix[20][20];//邻接矩阵
 	Vex m_aVexs[20];//顶点信息数组
