@@ -1,6 +1,11 @@
 ﻿
 // test3.cpp: 定义应用程序的类行为。
 //
+/*
+创建app对象-》构造函数-》初始化app对象-》创建对话框dig对象
+-》构造对话框-》调用dig.domodal()显示对话框-》调用对话框初始话函数
+-》当接收到wm_paint消息时，调用对话框onpaint绘制界面
+*/
 
 #include "pch.h"
 #include "framework.h"
@@ -30,7 +35,7 @@ Ctest3App::Ctest3App()
 }
 
 
-// 唯一的 Ctest3App 对象
+// 全局唯一的cwinapp类派生的 Ctest3App 对象
 Ctest3App theApp;
 
 
@@ -68,9 +73,12 @@ BOOL Ctest3App::InitInstance()
 	// 例如修改为公司或组织名
 	SetRegistryKey(_T("应用程序向导生成的本地应用程序"));
 
-	Ctest3Dlg dlg;
+	Ctest3Dlg dlg;//创建对话框对象，调试进入对话框类
 	m_pMainWnd = &dlg;
-	INT_PTR nResponse = dlg.DoModal();
+	INT_PTR nResponse = dlg.DoModal();//函数执行跳转到主界面对话框显示主界面的对话框
+
+
+
 	if (nResponse == IDOK)
 	{
 		// TODO: 在此放置处理何时用

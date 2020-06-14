@@ -13,7 +13,8 @@
 
 // Ctest3App:
 // 有关此类的实现，请参阅 test3.cpp
-//
+//每一个mfc程序从cwinapp类派生出来
+
 
 class Ctest3App : public CWinApp
 {
@@ -29,4 +30,4 @@ public:
 	DECLARE_MESSAGE_MAP()
 };
 
-extern Ctest3App theApp;
+extern Ctest3App theApp;//全局只存在一个theapp对象

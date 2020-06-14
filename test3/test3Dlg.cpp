@@ -7,13 +7,16 @@
 #include "test3.h"
 #include "test3Dlg.h"
 #include "afxdialogex.h"
+#include "CGameDlg.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
 
-
+/*
 // 用于应用程序“关于”菜单项的 CAboutDlg 对话框
+*/
+
 
 class CAboutDlg : public CDialogEx
 {
@@ -45,14 +48,14 @@ void CAboutDlg::DoDataExchange(CDataExchange* pDX)
 BEGIN_MESSAGE_MAP(CAboutDlg, CDialogEx)
 END_MESSAGE_MAP()
 
-
-// Ctest3Dlg 对话框
-
+/*
+// Ctest3Dlg 对话框的函数编写
+*/
 Ctest3Dlg::Ctest3Dlg(CWnd* pParent /*=nullptr*/)
 	: CDialogEx(IDD_TEST3_DIALOG, pParent)
 {
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);//星星图标
-}
+}//构造函数
 
 void Ctest3Dlg::DoDataExchange(CDataExchange* pDX)
 {
@@ -63,12 +66,14 @@ BEGIN_MESSAGE_MAP(Ctest3Dlg, CDialogEx)
 	ON_WM_SYSCOMMAND()
 	ON_WM_PAINT()
 	ON_WM_QUERYDRAGICON()
-	ON_BN_CLICKED(IDC_BUTTON_BASE2, &Ctest3Dlg::OnBnClickedButton2)
+//	ON_BN_CLICKED(IDC_BUTTON_BASE2, &Ctest3Dlg::OnBnClickedButton2)
+//	ON_BN_CLICKED(IDC_BUTTON_BASE1, &Ctest3Dlg::OnClickedButtonBase1)
+ON_BN_CLICKED(IDC_BUTTON_BASE1, &Ctest3Dlg::OnClickedButtonBase1)
+ON_BN_CLICKED(IDC_BUTTON_BASE2, &Ctest3Dlg::OnBnClickedButtonBase2)
 END_MESSAGE_MAP()
 
 
-// Ctest3Dlg 消息处理程序
-
+// Ctest3Dlg 消息处理程序，对话框初始化
 BOOL Ctest3Dlg::OnInitDialog()
 {
 	CDialogEx::OnInitDialog();
@@ -123,13 +128,18 @@ void Ctest3Dlg::OnSysCommand(UINT nID, LPARAM lParam)
 //  来绘制该图标。  对于使用文档/视图模型的 MFC 应用程序，
 //  这将由框架自动完成。
 
+/*
+操作系统显示对话框窗口发送wm-paint消息
+-》到应用程序-》对话框消息队列-》onpaint在视频内存中绘制窗口界面
+*/
+//收到wmpaint消息，绘制对话框
 void Ctest3Dlg::OnPaint()
 {
 	if (IsIconic())
 	{
 
-
-		CPaintDC dc(this); // 用于绘制的设备上下文
+		//cdc设备环境对象类，类似画布
+		CPaintDC dc(this); //cpaintdc是cdc子类，响应wmpaint消息的dc， 用于绘制的设备上下文
 
 		SendMessage(WM_ICONERASEBKGND, reinterpret_cast<WPARAM>(dc.GetSafeHdc()), 0);
 
@@ -146,8 +156,9 @@ void Ctest3Dlg::OnPaint()
 	}
 	else
 	{
-		/*调整窗口大小
-*/
+		/*
+		调整窗口大小
+        */
 		CRect rtWin;
 		CRect rtClient;
 		this->GetWindowRect(rtWin);//获取窗口大小
@@ -159,12 +170,15 @@ void Ctest3Dlg::OnPaint()
 		MoveWindow(0, 0, 800 + nSpanWidth, 600 + nSpanHeight);
 		CenterWindow();//剧中显示
 
+
+
 		//创建cpaintdc对象,cdc画布子类
 		CPaintDC dc(this);
 
-
 		/*
-		欢迎字
+		gdi（图形设备界面，管理win程序所有图形输出）绘制欢迎字
+		通过cpaintdc获取视频内存dc（DC设备环境描述表，应用程序与输出设备之间的桥梁），
+		字体选入dc中，通过dc.textout绘制显示出文字
 		
 		*/
 		//创建字体
@@ -173,11 +187,11 @@ void Ctest3Dlg::OnPaint()
 		CFont* oldFont;
 		oldFont = dc.SelectObject(&font);//将字体选入dc中
 		//绘制欢迎语
-		CString strText = _T("welcome");
+		CString strText = _T("Welcome");
 		//获取区大小
 		CRect rect;
 		GetClientRect(&rect);
-		//获取字符串宽高
+		//获取字符串宽高，居中显示
 		CSize size;
 		size = dc.GetTextExtent(strText, strText.GetLength());
 		int x = (rect.Width() - size.cx) / 2;
@@ -186,22 +200,27 @@ void Ctest3Dlg::OnPaint()
 
 		/*
 		绘制背景图片
+		从位图内存中拷贝到视频内存，进行显示
+		背景图片和对话框大小对应的800x600像素
 		*/
 		dc.BitBlt(0, 0, 800 , 600 , &m_dcMem, 0, 0, SRCCOPY);//从位图内存拷贝到视频内存，显进行显示
-		
-		dc.TextOut(x, y, strText);//显示welcome内容
+		dc.TextOut(x, y, strText);//显示welcome内容，在背景图的上面
 
 
 		CDialogEx::OnPaint();
 	}
 }
 
-
-void Ctest3Dlg::InitBackground()//初始化背景
+/*主界面//初始化背景
+位图加载静态背景不可边loadbitmap，动态背景可变loadimagew
+*/
+void Ctest3Dlg::InitBackground()
 {
 	/*
-	将位图加载如内存dc中
-	位图文件-》位图对象->位图dc-》视图dc-》显示器
+	gdi绘图
+	创建位图cbitmap，将位图加载如内存dc中
+	位图文件-》位图对象->位图内存dc（释放位图对象，调用onpaint时直接从内存dc中调用数据，位图只用读取一次，提高运行效率）
+	（-》视图dc-》显示器）
 	*/
 	//加载位图
 	CBitmap bmpMain;
@@ -225,7 +244,30 @@ HCURSOR Ctest3Dlg::OnQueryDragIcon()
 
 
 
-void Ctest3Dlg::OnBnClickedButton2()
+//void Ctest3Dlg::OnBnClickedButton2()
+//{
+//	// TODO: 在此添加控件通知处理程序代码
+//}
+
+
+//void Ctest3Dlg::OnClickedButtonBase1()
+//{
+//	// TODO: 在此添加控件通知处理程序代码
+//}
+
+/*
+基本模式，调用domodel函数创建显示基本游戏对话框（模态：只有当前界面可点击和非模态）
+*/
+void Ctest3Dlg::OnClickedButtonBase1()
+{
+	this->ShowWindow(SW_HIDE);//隐藏主界面
+	CGameDlg dlg;
+	dlg.DoModal();//跳转到基本模式，模式创建并显示基本模式模态对话框
+	this->ShowWindow(SW_SHOW);
+}
+
+
+void Ctest3Dlg::OnBnClickedButtonBase2()
 {
 	// TODO: 在此添加控件通知处理程序代码
 }

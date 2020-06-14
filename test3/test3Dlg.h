@@ -5,7 +5,7 @@
 #pragma once
 
 
-// Ctest3Dlg 对话框
+// Ctest3Dlg 对话框类
 class Ctest3Dlg : public CDialogEx
 {
 // 构造
@@ -24,7 +24,7 @@ public:
 // 实现
 protected:
 	HICON m_hIcon;
-	CDC m_dcMem;//位图内存
+	CDC m_dcMem;//一个与视频dc兼容的主位图内存dc
 
 	// 生成的消息映射函数
 	virtual BOOL OnInitDialog();
@@ -32,7 +32,10 @@ protected:
 	afx_msg void OnPaint();
 	afx_msg HCURSOR OnQueryDragIcon();
 	DECLARE_MESSAGE_MAP()
-	void InitBackground();//初始化背景
+	void InitBackground();//对话框初始化背景
 public:
-	afx_msg void OnBnClickedButton2();
+//	afx_msg void OnBnClickedButton2();
+//	afx_msg void OnClickedButtonBase1();
+	afx_msg void OnClickedButtonBase1();
+	afx_msg void OnBnClickedButtonBase2();
 };
