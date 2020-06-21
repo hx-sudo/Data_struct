@@ -34,6 +34,8 @@ public:
 // 实现
 protected:
 	DECLARE_MESSAGE_MAP()
+public:
+	afx_msg void OnLButtonUp(UINT nFlags, CPoint point);
 };
 
 CAboutDlg::CAboutDlg() : CDialogEx(IDD_ABOUTBOX)
@@ -46,6 +48,7 @@ void CAboutDlg::DoDataExchange(CDataExchange* pDX)
 }
 
 BEGIN_MESSAGE_MAP(CAboutDlg, CDialogEx)
+	ON_WM_LBUTTONUP()
 END_MESSAGE_MAP()
 
 /*
@@ -270,4 +273,14 @@ void Ctest3Dlg::OnClickedButtonBase1()
 void Ctest3Dlg::OnBnClickedButtonBase2()
 {
 	// TODO: 在此添加控件通知处理程序代码
+}
+
+/*
+WM_LBUTTONUP左键释放消息响应函数
+*/
+void CAboutDlg::OnLButtonUp(UINT nFlags, CPoint point)
+{
+	// TODO: 在此添加消息处理程序代码和/或调用默认值
+
+	CDialogEx::OnLButtonUp(nFlags, point);
 }
