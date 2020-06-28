@@ -19,16 +19,17 @@ CGameDlg::CGameDlg(CWnd* pParent /*=nullptr*/)
 {
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);//星星图标
 
-	m_ptGameTop.x=100;//游戏区域起点坐标,单位像素
-	m_ptGameTop.y = 100;
-	m_sizeElement.cx=40;//单个水果图片大小
-	m_sizeElement.cy = 40;
+	m_ptGameTop.x= GAMETOP;//游戏区域起点坐标,单位像素
+	m_ptGameTop.y = GAMETOP;
+	m_sizeElement.cx= SIZEELEMENT;//单个水果图片大小
+	m_sizeElement.cy = SIZEELEMENT;
+	m_bPlaying = false;//游戏标志
 	
 	//初始化游戏更新区域，消除时使用
 	m_rtGameRect.top = m_ptGameTop.y;//游戏区域左上角坐标
 	m_rtGameRect.left = m_ptGameTop.x;
-	m_rtGameRect.right = m_rtGameRect.left + m_sizeElement.cx * 10;//游戏区域右下角坐标
-	m_rtGameRect.bottom= m_rtGameRect.top + m_sizeElement.cy * 10;
+	m_rtGameRect.right = m_rtGameRect.left + m_sizeElement.cx * NUMELEMENT;//游戏区域右下角坐标
+	m_rtGameRect.bottom= m_rtGameRect.top + m_sizeElement.cy * NUMELEMENT;
 
 	//初始点的标识
 	m_bFirstPoint = true;//图片为第一次选中
@@ -51,6 +52,8 @@ BEGIN_MESSAGE_MAP(CGameDlg, CDialogEx)
 //	ON_NOTIFY(BCN_DROPDOWN, IDC_BUTTON1, &CGameDlg::OnDropdownButton1)
 ON_BN_CLICKED(IDC_BUTTON1, &CGameDlg::OnClickedButton1)
 ON_WM_LBUTTONUP()
+ON_BN_CLICKED(IDC_BUTTON3, &CGameDlg::OnBnClickedButton3)
+ON_BN_CLICKED(IDC_BUTTON4, &CGameDlg::OnBnClickedButton4)
 END_MESSAGE_MAP()
 
 
@@ -134,10 +137,7 @@ void CGameDlg::UpdateWindos()
 }
 
 
-//void CGameDlg::OnBnClickedButton1()
-//{
-//	// TODO: 在此添加控件通知处理程序代码
-//}
+
 
 
 /*游戏水果图，掩码图初始化保存到dc中，按列从上到下0—n
@@ -163,35 +163,46 @@ void CGameDlg:: InitElement()
 
 
 /*基本模式-开始按钮，绘制水果地图
+开始游戏设置游戏标志，禁用开始按钮
 */
 void CGameDlg::OnClickedButton1()
 {
-	/*水果图地图初始化
-	//初始化地图数组
-	int anMap[8][8] = {
-		1,3,5,3,5,3,6,0,
-		2,4,6,3,2,2,0,5,
-		2,4,5,1,5,2,4,1,
-		3,3,4,5,3,3,5,3,
-		6,5,6,6,4,2,5,1,
-		5,6,3,4,5,6,0,0,
-		2,1,1,5,6,4,4,3,
-		0,0,6,3,4,4,6,2,
-	};
-	for (int i = 0; i < 8; i++)
-	{
-		for (int  j = 0; j < 8; j++)
-		{
-			m_anMap[i][j] = anMap[i][j];
-		}
-	}*/
+
 	m_gControl.StartGame();//初始化数组
+	m_bPlaying = true;//游戏已开始
+	this->GetDlgItem(IDC_BUTTON1)->EnableWindow(FALSE);//开始按钮不可用
 
 	//更新游戏界面
 	UpdateMap();
 	Invalidate(FALSE);//未能成功显示，客户区无效，invalidate绘制更新部分界面，进行覆盖
 
 }
+//提示按钮，调用控制层help
+void CGameDlg::OnBnClickedButton3()
+{
+	if (m_bPlaying == false)
+		return;//游戏未开始
+	Vertex avPath[PICNUM];//连接路径的顶点
+	int nVexnum = 0;//连接顶点的个数
+	if (m_gControl.Help(avPath, nVexnum) == false)
+		return;
+	else
+	{
+		DrawTipFrame(avPath[0].row,avPath[0].col);//画第一个提示框
+		DrawTipFrame(avPath[nVexnum-1].row, avPath[nVexnum-1].col);//画第二个提示框
+		DrawTipLine(avPath,nVexnum);//画连线
+		Sleep(500);//延迟更新
+		UpdateMap();
+		InvalidateRect(m_rtGameRect, FALSE);
+	}
+}
+
+//重排按钮
+void CGameDlg::OnBnClickedButton4()
+{
+	
+}
+
 
 /*
 跟新绘制游戏地图，仅仅游戏部分
@@ -201,19 +212,18 @@ void CGameDlg::UpdateMap()
 	//单位像素
 	int nLeft = m_ptGameTop.x;//游戏区域起点位置
 	int nTop = m_ptGameTop.y;
-	int nElemW = 40;//每个图的长宽
-	int nElemH = 40;
+	int nElemW = SIZEELEMENT;//每个图的长宽
+	int nElemH = SIZEELEMENT;
 	//先绘制游戏部分背景图片
 	m_dcMem.BitBlt(m_rtGameRect.left, m_rtGameRect.top, m_rtGameRect.Width(), m_rtGameRect.Height(),
 		&m_dcBG, m_rtGameRect.left, m_rtGameRect.top, SRCCOPY);
-	for (int i = 0; i < 10; i++)//
+	for (int i = 0; i < NUMELEMENT; i++)//
 	{
-		for (int j = 0; j < 10; j++)//
+		for (int j = 0; j < NUMELEMENT; j++)//
 		{
-			int nInfo = m_gControl.GetElement(i,j);//返回图片编号
+			int nInfo = m_gControl.GetElement(i,j);//返回图片编号，在控制类中判断连接消子返回，消子在逻辑类中具体实现
 			//通过初始化加载的水果图dc
 			//逐行逐列从数组，将相应行列编号的图片数据中放到dc中
-			//m_dcMem.BitBlt(nLeft+j*nElemW,nTop+i*nElemH,nElemW,nElemH,&m_dcElement,0,m_anMap[i][j]*nElemH,SRCCOPY);//复制
 			
 				m_dcMem.BitBlt(nLeft + j * nElemW, nTop + i * nElemH, nElemW, nElemH,
 					&m_dcMask, 0, nInfo * nElemH, SRCPAINT);//与掩码图相或
@@ -232,10 +242,16 @@ void CGameDlg::UpdateMap()
 /*
 WM_LBUTTONUP左键释放消息响应函数,参数点击区域，坐标c
 获取点击的游戏图行号，绘制提示框，判断两次选择是否同,消除
+连通判断后判断胜负，胜将游戏标志置位未开始，开始游戏按钮可用
 */
 void CGameDlg::OnLButtonUp(UINT nFlags, CPoint point)
 {
 	// TODO: 在此添加消息处理程序代码和/或调用默认值
+	if (m_bPlaying==false)
+	{
+		return;
+	}
+
 	CDialogEx::OnLButtonUp(nFlags, point);
 	if (point.x<m_ptGameTop.x|| point.y < m_ptGameTop.y)
 	{
@@ -244,7 +260,7 @@ void CGameDlg::OnLButtonUp(UINT nFlags, CPoint point)
 	}
 	int nRow = (point.y - m_ptGameTop.y) / m_sizeElement.cy;//点击的水果图行号（现-起）/单位
 	int nCol = (point.x - m_ptGameTop.x) / m_sizeElement.cx;//点击的水果图列号
-	if (nRow>9||nCol>9)
+	if (nRow> NUMELEMENT -1||nCol> NUMELEMENT-1)
 	{
 		//点击不在游戏区域
 		return 	CDialogEx::OnLButtonUp(nFlags, point);
@@ -253,27 +269,30 @@ void CGameDlg::OnLButtonUp(UINT nFlags, CPoint point)
 	if (m_bFirstPoint)
 	{//第一次选中图片，保存坐标
 		DrawTipFrame(nRow, nCol);//通过点击获取的行号绘制选中图标的提示框
-		//m_ptSelFirst.x = nCol;//列
-		//m_ptSelFirst.y = nRow;
 		m_gControl.SetFirstPoint(nRow, nCol);//设置第一个顶点
 	}
 	else
 	{//第二次选中，同时判断两次选中的是否为同一种图片
 		DrawTipFrame(nRow, nCol);//通过点击获取的行号绘制选中图标的提示框
-			//m_ptSelSec.x = nCol;//行
-			//m_ptSelSec.y = nRow;
 		m_gControl.SetSecPoint(nRow, nCol);//设置第一个顶点
-		Vertex avPath[8];//连接路径的顶点
+		Vertex avPath[PICNUM];//连接路径的顶点
 		int nVexnum = 0;//连接顶点的个数
 		if (m_gControl.Link(avPath, nVexnum))//在函数中直接判断连接，消子标记
 		{
 			DrawTipLine(avPath, nVexnum);//两图连接起来
-			//m_anMap[m_ptSelFirst.y][m_ptSelFirst.x] = -1;//-1表示两个点消除
-			//m_anMap[m_ptSelSec.y][m_ptSelSec.x] = -1;
 			UpdateMap();//更新水果图游戏地图
+
 		}
 		Sleep(200);//ms绘制连线后，延迟，在重绘游戏地图
 		InvalidateRect(m_rtGameRect,FALSE);//重绘游戏区域，是否擦除背景，引起屏幕闪烁更新
+		
+		if (m_gControl.IsWin())//判断胜负
+		{
+			MessageBox(_T("获胜"));//消息对话框
+			m_bPlaying = false;
+			this->GetDlgItem(IDC_BUTTON1)->EnableWindow(TRUE);
+			return;
+		}
 	}
 	m_bFirstPoint = !m_bFirstPoint;//标志取反，循环使用
 
@@ -294,33 +313,28 @@ void CGameDlg::DrawTipFrame(int nRow,int nCol)
 	dc.FrameRect(rtTipFrame, &brush);//将提示框加到dc中
 }
 
-/*判断选择的一对图片是否为同种图片
-bool CGameDlg::IsLink()
-{
-	if (m_anMap[m_ptSelFirst.y][m_ptSelFirst.x]== m_anMap[m_ptSelSec.y][m_ptSelSec.x])
-	{
-		//两次选中的为同一种
-		return true;
-	}
-	return false;
-}*/
+
 
 /*
 *///绘制选择的相同的两个点之间的连线（中心绘制）
-void  CGameDlg::DrawTipLine(Vertex avPath[8],int nVexnum)
+void  CGameDlg::DrawTipLine(Vertex avPath[PICNUM],int nVexnum)
 {
 	CClientDC dc(this);
 	CPen penLine(PS_SOLID, 2, RGB(0, 255, 0));//设置画笔
 	CPen* poldPen = dc.SelectObject(&penLine);//将画笔选入dc
 	//绘制连接直线线起点和终点
+	dc.MoveTo(m_ptGameTop.x + avPath[0].col * m_sizeElement.cx + m_sizeElement.cx / 2,
+			m_ptGameTop.y + avPath[0].row * m_sizeElement.cy + m_sizeElement.cy / 2);
 
 	for (int i = 0; i < nVexnum-1; i++)
 	{
-		dc.MoveTo(m_ptGameTop.x + avPath[i].col * m_sizeElement.cx + m_sizeElement.cx / 2,
-			m_ptGameTop.y + avPath[i].row * m_sizeElement.cy + m_sizeElement.cy / 2);
+		
 		dc.LineTo(m_ptGameTop.x + avPath[i+1].col * m_sizeElement.cx + m_sizeElement.cx / 2,
 			m_ptGameTop.y + avPath[i+1].row * m_sizeElement.cy + m_sizeElement.cy / 2);
 	}
 
 	dc.SelectObject(poldPen);
 }
+
+
+
