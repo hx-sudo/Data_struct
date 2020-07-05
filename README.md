@@ -1,7 +1,7 @@
 # Data_struct
 
 #### 介绍
-数据结构与算法综合实验WHUT 哈夫曼编码图片压缩，景区旅游管理，欢乐连连看
+数据结构与算法综合实验WHUT 哈夫曼编码图片压缩，景区旅游管理，欢乐连连看分支ts,ts2,ts3
 
 ![界面](https://images.gitee.com/uploads/images/2020/0705/180132_71e02d4b_7489189.png "~$[6}T[_XX{~VDX@2GS@U8N.png")
 
