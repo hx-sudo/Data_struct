@@ -19,24 +19,7 @@ CGameLogic::~CGameLogic() {
 void CGameLogic::InitMap(CGraph& g) {//-1为边框,false二维数组表示边框
 	//初始化地图数组
 	int manMap[NUMELEMENT][NUMELEMENT];
-		/*= {
 		
-		-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
-		-1,1,4,5,3,5,3,6,0,-1,
-		-1,2,3,6,3,2,2,0,5,-1,
-		-1,2,4,5,1,5,2,4,1,-1,
-		-1,3,3,4,5,3,3,5,3,-1,
-		-1,6,5,6,6,4,2,5,1,-1,
-		-1,5,6,3,4,5,6,0,0,-1,
-		-1,2,1,1,5,6,4,4,3,-1,
-		-1,0,4,6,3,0,4,6,2,-1,
-		-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
-		
-		2,0,1,3,
-		2,2,1,3,
-		2,1,0,0,
-		1,3,0,3,
-	};*/
 	int anTemp[PNUM* PENUM];//保存生成的随机顶点数组
 	for (int i = 0; i < PNUM; i++)//花色数
 	{
@@ -112,10 +95,7 @@ bool CGameLogic::IsLink(CGraph& g, Vertex v1, Vertex v2)
 	{
 		
 		return true;
-	}
-
-
-	
+	}	
 	//栈顶元素出栈
 	PopVetex();
 	return false;
@@ -217,7 +197,6 @@ void CGameLogic::UpdateArc(CGraph& g, int nRow, int nCol)
 		{
 			g.AddArc(nV1Index, nV2Index);
 		}
-
 	}
 	if (nRow>0)
 	{
@@ -339,5 +318,36 @@ bool CGameLogic::SerachVaildPath(CGraph &g)
 //对图结构的顶点重排，并更新顶点关系
 void CGameLogic::ResetGraph(CGraph& g)
 {
-	
+
+	//随机交换顶点数组中两个顶点值
+	for (int i = 0; i < 400; i++)//随机交换两个数字次
+	{
+		//随机得到两个坐标
+		int nIndex1 = rand() % (PICNUM);
+		int nIndex2 = rand() % (PICNUM);
+
+		//-1边框不参与交换
+		if (nIndex1 < NUMELEMENT|| nIndex1>PICNUM- NUMELEMENT-2||nIndex1% NUMELEMENT == 0|| nIndex1% NUMELEMENT== NUMELEMENT-1||
+			nIndex2 < NUMELEMENT || nIndex2>PICNUM - NUMELEMENT - 2 || nIndex2 % NUMELEMENT == 0 || nIndex2 % NUMELEMENT == NUMELEMENT - 1 )
+		{
+			continue;
+		}
+		else
+		{
+			//anTemp[(i * NUMELEMENT + j) - (NUMELEMENT + 2 * i - 1)];
+			//交换两个数值
+			int nTmp = g.GetVertex(nIndex1);
+			g.UpdataVertex(nIndex1, g.GetVertex(nIndex2));
+			g.UpdataVertex(nIndex2, nTmp);
+		}
+	}
+	for (int i = 0; i < NUMELEMENT; i++)//必须先初始化顶点数组初始化边有用到顶点数组
+	{
+		for (int j = 0; j < NUMELEMENT; j++)
+		{
+			UpdateArc(g, i, j);//添加边
+		}
+	}
+
+
 }

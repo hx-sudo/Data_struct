@@ -18,7 +18,6 @@ public:
 	CGraph();
 	~CGraph();
 
-
 	int AddVertex(int info);//添加顶点到数组
 	int GetVertex(int nlndex);//在顶点数组获取索引为nlndex的顶点
 	void AddArc(int nV1Index, int nV2Index);//将两个点间的关系添加关系数组中

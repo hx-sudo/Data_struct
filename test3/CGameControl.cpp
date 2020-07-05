@@ -82,15 +82,20 @@ bool CGameControl::Link(Vertex avPath[PICNUM],int &nVexnum)
 
 
 //通过判断顶点数组是否全部为-1即空，y清理图结构，调用逻辑层函数
-bool CGameControl::IsWin()
+BOOL CGameControl::IsWin(int nTime)
 {
 	CGameLogic clg;
+	if (nTime<=0)
+	{
+		m_graph.ClearGrapg();//清理图结构
+		return 0;//超时失败
+	}
 	if (clg.IsBlank(m_graph)==true)
 	{
 		m_graph.ClearGrapg();//清理图结构
-		return true;
+		return 1;
 	}
-	return false;
+	return 2;//游戏继续
 }
 
 //提示可消除的一对，返回连接路径及顶点数,调用逻辑层提示方法
@@ -110,8 +115,10 @@ bool CGameControl::Help(Vertex anPath[PICNUM], int& nVexnum)
 	return false;
 }
 
-//重排地图函数，对m_graph数据重排
+//重排地图函数，调用逻辑层函数对m_graph数据重排
 void CGameControl::ResetGraph()
 {
-	
+	CGameLogic clg;
+	clg.ResetGraph(m_graph);
+
 }

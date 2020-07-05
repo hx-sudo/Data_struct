@@ -8,6 +8,7 @@
 #include "test3.h"
 #include "CGameDlg.h"
 #include "afxdialogex.h"
+#include "resource.h"
 
 
 // CGameDlg 对话框
@@ -23,8 +24,7 @@ CGameDlg::CGameDlg(CWnd* pParent /*=nullptr*/)
 	m_ptGameTop.y = GAMETOP;
 	m_sizeElement.cx= SIZEELEMENT;//单个水果图片大小
 	m_sizeElement.cy = SIZEELEMENT;
-	m_bPlaying = false;//游戏标志
-	
+
 	//初始化游戏更新区域，消除时使用
 	m_rtGameRect.top = m_ptGameTop.y;//游戏区域左上角坐标
 	m_rtGameRect.left = m_ptGameTop.x;
@@ -33,6 +33,8 @@ CGameDlg::CGameDlg(CWnd* pParent /*=nullptr*/)
 
 	//初始点的标识
 	m_bFirstPoint = true;//图片为第一次选中
+	m_bPlaying = false;//游戏标志
+
 
 }//构造函数
 
@@ -43,6 +45,7 @@ CGameDlg::~CGameDlg()
 void CGameDlg::DoDataExchange(CDataExchange* pDX)
 {
 	CDialogEx::DoDataExchange(pDX);
+	DDX_Control(pDX,IDC_GAME_TIMER, m_GameProgress);
 }
 
 
@@ -54,6 +57,11 @@ ON_BN_CLICKED(IDC_BUTTON1, &CGameDlg::OnClickedButton1)
 ON_WM_LBUTTONUP()
 ON_BN_CLICKED(IDC_BUTTON3, &CGameDlg::OnBnClickedButton3)
 ON_BN_CLICKED(IDC_BUTTON4, &CGameDlg::OnBnClickedButton4)
+ON_BN_CLICKED(IDC_BUTTON2, &CGameDlg::OnBnClickedButton2)
+//ON_NOTIFY(NM_CUSTOMDRAW,IDC_GAME_TIMER, &CGameDlg::OnNMCustomdrawGameTime)
+ON_WM_TIMER()
+ON_BN_CLICKED(IDC_BUTTON5, &CGameDlg::OnBnClickedButton5)
+ON_BN_CLICKED(IDC_BUTTON6, &CGameDlg::OnBnClickedButton6)
 END_MESSAGE_MAP()
 
 
@@ -101,6 +109,9 @@ BOOL CGameDlg::OnInitDialog()
 	InitBackground();//初始化背景，将图片加载到内存dc中
 	InitElement();//初始化水果图片，将图片加载到内存dc中
 	UpdateWindos();//窗口大小
+	//游戏未开始进度条隐藏和剩余时间控件
+	this->GetDlgItem(IDC_GAME_TIMER)->ShowWindow(FALSE);
+
 	return TRUE;  // return TRUE unless you set the focus to a control
 				  // 异常: OCX 属性页应返回 FALSE
 }
@@ -138,25 +149,32 @@ void CGameDlg::UpdateWindos()
 
 
 
-
-
 /*游戏水果图，掩码图初始化保存到dc中，按列从上到下0—n
+加载掩盖游戏地图的图片
 */
 void CGameDlg:: InitElement()
 {
 	//::调用api,加载图片
 	HANDLE bmp = ::LoadImage(NULL, TEXT("thame\\picture\\fruit_element.bmp"), IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+	HANDLE bmp2 = ::LoadImage(NULL, TEXT("thame\\picture\\fruit_pause.bmp"), IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
 
 	//将位图加载到dc
 	CClientDC dc(this);
 	m_dcElement.CreateCompatibleDC(&dc);//创建与视频内容兼容的内存dc
 	m_dcElement.SelectObject(bmp);//将对象放入位图dc
 
+	m_dcPause.CreateCompatibleDC(&dc);
+	m_dcPause.SelectObject(bmp2);
+	//CBitmap bitmap;
+	m_bPause = false;
+
 	//掩码图1像素RGB3字节，黑0白1
 	HANDLE hMask = ::LoadImage(NULL, TEXT("thame\\picture\\fruit_mask.bmp"), IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
 
 	m_dcMask.CreateCompatibleDC(&dc);
 	m_dcMask.SelectObject(hMask);//将对象放入位图dc
+
+
 }
 
 
@@ -167,17 +185,52 @@ void CGameDlg:: InitElement()
 */
 void CGameDlg::OnClickedButton1()
 {
-
+	if (m_bPause==true)
+	{
+		return;
+	}
 	m_gControl.StartGame();//初始化数组
 	m_bPlaying = true;//游戏已开始
 	this->GetDlgItem(IDC_BUTTON1)->EnableWindow(FALSE);//开始按钮不可用
+	
+	m_GameProgress.SetRange(0,60*1);//进度条范围300
+	m_GameProgress.SetStep(-1);//变化步数值
+	m_GameProgress.SetPos(60 * 1);//设置初始值
+	//启动定时器
+	this->SetTimer(PLAY_TIMER_ID,1000,NULL);//间隔1000毫秒
+	DrawGameTime();//绘制当前秒数
 
+	this->GetDlgItem(IDC_GAME_TIMER)->ShowWindow(TRUE);//开始游戏进度条可见
 	//更新游戏界面
 	UpdateMap();
 	Invalidate(FALSE);//未能成功显示，客户区无效，invalidate绘制更新部分界面，进行覆盖
 
 }
-//提示按钮，调用控制层help
+
+
+//-暂停按钮
+void CGameDlg::OnBnClickedButton2()
+{
+	if (m_bPlaying == false)
+		return;
+	if (m_bPause==false)//游戏正在进行
+	{
+		m_dcMem.BitBlt(10, 10, 1000, 600, &m_dcPause, 0, 0, SRCCOPY);
+
+		InvalidateRect(m_rtGameRect, FALSE);    //局部矩形更新
+		this->GetDlgItem(IDC_BUTTON2)->SetWindowTextW(_T("继续"));
+	}
+	else//游戏已暂停
+	{
+		UpdateMap();
+
+		InvalidateRect(m_rtGameRect, FALSE);    //局部矩形更新
+		this->GetDlgItem(IDC_BUTTON2)->SetWindowTextW(_T("暂停"));
+	}
+	m_bPause = !m_bPause;
+}
+
+//-提示按钮，调用控制层help
 void CGameDlg::OnBnClickedButton3()
 {
 	if (m_bPlaying == false)
@@ -197,11 +250,31 @@ void CGameDlg::OnBnClickedButton3()
 	}
 }
 
-//重排按钮
+//-重排按钮
 void CGameDlg::OnBnClickedButton4()
 {
-	
+	if (m_bPlaying == false)
+		return;//游戏未开始
+	m_gControl.ResetGraph(); 
+	UpdateMap();
+	InvalidateRect(m_rtGameRect, FALSE);
 }
+
+
+//-设置
+void CGameDlg::OnBnClickedButton5()
+{
+}
+
+//-帮助
+void CGameDlg::OnBnClickedButton6()
+{
+	CHelpDialog hlg;//帮助对话框类
+	hlg.DoModal();//显示
+}
+
+
+
 
 
 /*
@@ -246,7 +319,7 @@ WM_LBUTTONUP左键释放消息响应函数,参数点击区域，坐标c
 */
 void CGameDlg::OnLButtonUp(UINT nFlags, CPoint point)
 {
-	// TODO: 在此添加消息处理程序代码和/或调用默认值
+	
 	if (m_bPlaying==false)
 	{
 		return;
@@ -286,13 +359,8 @@ void CGameDlg::OnLButtonUp(UINT nFlags, CPoint point)
 		Sleep(200);//ms绘制连线后，延迟，在重绘游戏地图
 		InvalidateRect(m_rtGameRect,FALSE);//重绘游戏区域，是否擦除背景，引起屏幕闪烁更新
 		
-		if (m_gControl.IsWin())//判断胜负
-		{
-			MessageBox(_T("获胜"));//消息对话框
-			m_bPlaying = false;
-			this->GetDlgItem(IDC_BUTTON1)->EnableWindow(TRUE);
-			return;
-		}
+		JudgeWin();//判断胜负
+	
 	}
 	m_bFirstPoint = !m_bFirstPoint;//标志取反，循环使用
 
@@ -312,7 +380,6 @@ void CGameDlg::DrawTipFrame(int nRow,int nCol)
 	rtTipFrame.bottom = rtTipFrame.top + m_sizeElement.cy;//选中单个图标的高
 	dc.FrameRect(rtTipFrame, &brush);//将提示框加到dc中
 }
-
 
 
 /*
@@ -336,5 +403,79 @@ void  CGameDlg::DrawTipLine(Vertex avPath[PICNUM],int nVexnum)
 	dc.SelectObject(poldPen);
 }
 
+
+void CGameDlg::OnTimer(UINT_PTR nIDEvent)
+{
+	if (nIDEvent == PLAY_TIMER_ID && m_bPlaying && m_bPause == false)
+	{
+		m_GameProgress.StepIt();//设置进度条位置
+		DrawGameTime();
+		JudgeWin();//超时判断胜负
+
+
+	}
+
+	CDialogEx::OnTimer(nIDEvent);
+}
+
+
+//判断胜负，时间和空
+void  CGameDlg::JudgeWin()
+{
+	BOOL gameState = m_gControl.IsWin(m_GameProgress.GetPos());
+	if (gameState==2)//继续游戏
+	{
+		return;
+	}
+	else
+	{
+		m_bPlaying = false;//游戏停止
+		KillTimer(PLAY_TIMER_ID);//关闭定时器
+		CString strTitle;
+		this->GetWindowTextW(strTitle);
+		if (gameState==1)
+		{
+			MessageBox(_T("获胜"), strTitle);
+		}
+		else
+		{
+			if (gameState == 0)
+			{
+				MessageBox(_T("失败"), strTitle);
+			}
+		}
+		this->GetDlgItem(IDC_BUTTON1)->EnableWindow(TRUE);//开始按钮还原
+	}
+}
+
+//绘制游戏时间//绘制当前秒数
+void  CGameDlg::DrawGameTime()
+{
+
+	//创建字体
+	CFont font;
+	font.CreatePointFont(150, _T("Courier New"));
+	CFont* oldFont;
+	CDC *dc=this->GetDC();
+	oldFont = dc->SelectObject(&font);//将字体选入dc中
+	dc->SetTextColor(RGB(255, 0, 0));
+
+	CString str;
+	str.Format(_T("%d"), m_GameProgress.GetPos());
+	CSize size=dc->GetTextExtent(str, str.GetLength());
+	dc->TextOut(888, 678, str);//显示内容，在背景图的上面
+
+	//UpdateMap();
+	//InvalidateRect(m_rtGameRect, FALSE);
+
+}
+
+
+void CGameDlg::OnNMCustomdrawGameTime(NMHDR* pNMHDR, LRESULT* pResult)
+{
+	LPNMCUSTOMDRAW pNMCD = reinterpret_cast<LPNMCUSTOMDRAW>(pNMHDR);
+	// TODO: 在此添加控件通知处理程序代码
+	*pResult = 0;
+}
 
 
